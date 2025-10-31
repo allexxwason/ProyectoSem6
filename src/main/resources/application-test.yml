@@ -1,3 +1,5 @@
 spring:
   application:
-    name: ProyectoSem6-Test
+    name: ProyectoSem6-test
+server:
+  port: 8081

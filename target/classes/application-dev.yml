@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: ProyectoSem6-dev
+server:
+  port: 8080
