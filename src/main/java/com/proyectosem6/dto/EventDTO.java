@@ -1,6 +1,10 @@
 package com.proyectosem6.dto;
+
+import jakarta.validation.constraints.NotBlank;
+
 public class EventDTO {
     private Long id;
+    @NotBlank(message = "name must not be blank")
     private String name;
     private String date;
     private String venue;

@@ -1,22 +1,47 @@
 package com.proyectosem6.controller;
+
 import com.proyectosem6.dto.VenueDTO;
 import com.proyectosem6.service.VenueService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 import java.util.List;
+
 @RestController
 @RequestMapping("/venues")
+@Tag(name = "Venues", description = "Endpoints para gestionar venues")
 public class VenueController {
     private final VenueService service;
     public VenueController(VenueService service) { this.service = service; }
-    @GetMapping public ResponseEntity<List<VenueDTO>> getAll() { return ResponseEntity.ok(service.getAllVenues()); }
-    @GetMapping("/{id}") public ResponseEntity<VenueDTO> getById(@PathVariable Long id) {
+
+    @GetMapping
+    @Operation(summary = "Listar venues")
+    public ResponseEntity<List<VenueDTO>> getAll() { return ResponseEntity.ok(service.getAllVenues()); }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener venue por id")
+    public ResponseEntity<VenueDTO> getById(@PathVariable Long id) {
         return service.getVenueById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build()); }
-    @PostMapping public ResponseEntity<VenueDTO> create(@RequestBody VenueDTO v) {
-        if (v.getName()==null || v.getName().isBlank()) return ResponseEntity.badRequest().build();
+
+    @PostMapping
+    @Operation(summary = "Crear nuevo venue")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = "application/json", schema = @Schema(implementation = VenueDTO.class), examples = @ExampleObject(value = "{\"name\":\"Sala Principal\",\"location\":\"Centro\"}")))
+    public ResponseEntity<VenueDTO> create(@Valid @RequestBody VenueDTO v) {
         return ResponseEntity.ok(service.createVenue(v)); }
-    @PutMapping("/{id}") public ResponseEntity<VenueDTO> update(@PathVariable Long id, @RequestBody VenueDTO v) {
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Actualizar venue")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = "application/json", schema = @Schema(implementation = VenueDTO.class), examples = @ExampleObject(value = "{\"name\":\"Sala Updated\",\"location\":\"Centro\"}")))
+    public ResponseEntity<VenueDTO> update(@PathVariable Long id, @Valid @RequestBody VenueDTO v) {
         return service.updateVenue(id,v).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build()); }
-    @DeleteMapping("/{id}") public ResponseEntity<Void> delete(@PathVariable Long id) {
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar venue")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         return service.deleteVenue(id)?ResponseEntity.noContent().build():ResponseEntity.notFound().build(); }
 }
