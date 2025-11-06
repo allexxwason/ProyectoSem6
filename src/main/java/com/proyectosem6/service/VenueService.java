@@ -1,16 +1,45 @@
 package com.proyectosem6.service;
+
 import com.proyectosem6.dto.VenueDTO;
+import com.proyectosem6.entity.VenueEntity;
+import com.proyectosem6.repository.VenueRepository;
 import org.springframework.stereotype.Service;
-import java.util.*;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 @Service
 public class VenueService {
-    private final List<VenueDTO> venues = new ArrayList<>();
-    private Long idCounter = 1L;
-    public List<VenueDTO> getAllVenues() { return venues; }
-    public Optional<VenueDTO> getVenueById(Long id) { return venues.stream().filter(v -> v.getId().equals(id)).findFirst(); }
-    public VenueDTO createVenue(VenueDTO venue) { venue.setId(idCounter++); venues.add(venue); return venue; }
-    public Optional<VenueDTO> updateVenue(Long id, VenueDTO updated) {
-        return getVenueById(id).map(v -> { v.setName(updated.getName()); v.setLocation(updated.getLocation()); return v; });
+    private final VenueRepository repository;
+
+    public VenueService(VenueRepository repository) { this.repository = repository; }
+
+    public List<VenueDTO> getAllVenues() {
+        return repository.findAll().stream().map(this::toDto).collect(Collectors.toList());
     }
-    public boolean deleteVenue(Long id) { return venues.removeIf(v -> v.getId().equals(id)); }
+
+    public Optional<VenueDTO> getVenueById(Long id) { return repository.findById(id).map(this::toDto); }
+
+    public VenueDTO createVenue(VenueDTO venue) {
+        VenueEntity e = new VenueEntity(venue.getName(), venue.getLocation());
+        VenueEntity saved = repository.save(e);
+        return toDto(saved);
+    }
+
+    public Optional<VenueDTO> updateVenue(Long id, VenueDTO updated) {
+        return repository.findById(id).map(v -> {
+            v.setName(updated.getName());
+            v.setLocation(updated.getLocation());
+            return toDto(repository.save(v));
+        });
+    }
+
+    public boolean deleteVenue(Long id) {
+        if (!repository.existsById(id)) return false;
+        repository.deleteById(id);
+        return true;
+    }
+
+    private VenueDTO toDto(VenueEntity v) { return new VenueDTO(v.getId(), v.getName(), v.getLocation()); }
 }
