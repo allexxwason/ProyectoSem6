@@ -1,11 +1,14 @@
 package com.proyectosem6.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public class VenueDTO {
     private Long id;
-    @NotBlank(message = "name must not be blank")
+    @NotBlank(message = "El nombre no puede estar vacío")
+    @Size(min = 3, max = 50, message = "El nombre debe tener entre 3 y 50 caracteres")
     private String name;
+    @NotBlank(message = "La ubicación es obligatoria")
     private String location;
     public VenueDTO() {}
     public VenueDTO(Long id, String name, String location) {
