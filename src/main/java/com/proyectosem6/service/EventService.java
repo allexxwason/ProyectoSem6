@@ -4,7 +4,11 @@ import com.proyectosem6.entity.EventEntity;
 import com.proyectosem6.repository.EventRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -19,7 +23,19 @@ public class EventService {
         return repository.findAll().stream().map(this::toDto).collect(Collectors.toList());
     }
 
-    public Optional<EventDTO> getEventById(Long id) { return repository.findById(id).map(this::toDto); }
+    public Page<EventDTO> getAllEvents(@NonNull Pageable pageable, String venue, String date) {
+        if (venue != null && date != null) {
+            return repository.findByVenueAndDate(venue, date, pageable).map(this::toDto);
+        } else if (venue != null) {
+            return repository.findByVenue(venue, pageable).map(this::toDto);
+        } else if (date != null) {
+            return repository.findByDate(date, pageable).map(this::toDto);
+        } else {
+            return repository.findAll(pageable).map(this::toDto);
+        }
+    }
+
+    public Optional<EventDTO> getEventById(@NonNull Long id) { return repository.findById(id).map(this::toDto); }
 
     public EventDTO createEvent(EventDTO event) {
         try {
@@ -31,7 +47,7 @@ public class EventService {
         }
     }
 
-    public Optional<EventDTO> updateEvent(Long id, EventDTO updated) {
+    public Optional<EventDTO> updateEvent(@NonNull Long id, EventDTO updated) {
         return repository.findById(id).map(e -> {
             e.setName(updated.getName());
             e.setDate(updated.getDate());
@@ -40,7 +56,7 @@ public class EventService {
         });
     }
 
-    public boolean deleteEvent(Long id) {
+    public boolean deleteEvent(@NonNull Long id) {
         if (!repository.existsById(id)) return false;
         repository.deleteById(id);
         return true;

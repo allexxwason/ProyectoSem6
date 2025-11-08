@@ -11,6 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
 
 @RestController
 @RequestMapping("/events")
@@ -20,12 +23,17 @@ public class EventController {
     public EventController(EventService service) { this.service = service; }
 
     @GetMapping
-    @Operation(summary = "Listar eventos")
-    public ResponseEntity<List<EventDTO>> getAll() { return ResponseEntity.ok(service.getAllEvents()); }
+    @Operation(summary = "Listar eventos con paginación y filtros")
+    public ResponseEntity<Page<EventDTO>> getAll(@NonNull Pageable pageable,
+        @RequestParam(required = false) String venue,
+        @RequestParam(required = false) String date) {
+        Page<EventDTO> page = service.getAllEvents(pageable, venue, date);
+        return ResponseEntity.ok(page);
+    }
 
     @GetMapping("/{id}")
     @Operation(summary = "Obtener evento por id")
-    public ResponseEntity<EventDTO> getById(@PathVariable Long id) {
+    public ResponseEntity<EventDTO> getById(@NonNull @PathVariable Long id) {
         return service.getEventById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build()); }
 
     @PostMapping
@@ -37,11 +45,11 @@ public class EventController {
     @PutMapping("/{id}")
     @Operation(summary = "Actualizar evento")
     @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventDTO.class), examples = @ExampleObject(value = "{\"name\":\"Concierto Updated\",\"date\":\"2025-12-02\",\"venue\":\"Arena\"}")))
-    public ResponseEntity<EventDTO> update(@PathVariable Long id, @Valid @RequestBody EventDTO e) {
+    public ResponseEntity<EventDTO> update(@NonNull @PathVariable Long id, @Valid @RequestBody EventDTO e) {
         return service.updateEvent(id,e).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build()); }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar evento")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@NonNull @PathVariable Long id) {
         return service.deleteEvent(id)?ResponseEntity.noContent().build():ResponseEntity.notFound().build(); }
 }
