@@ -1,6 +1,8 @@
 package com.proyectosem6.service;
+
 import com.proyectosem6.dto.EventDTO;
 import com.proyectosem6.entity.EventEntity;
+import com.proyectosem6.exception.ConflictException;
 import com.proyectosem6.repository.EventRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -13,21 +15,29 @@ import java.util.stream.Collectors;
 public class EventService {
     private final EventRepository repository;
 
-    public EventService(EventRepository repository) { this.repository = repository; }
+    public EventService(EventRepository repository) {
+        this.repository = repository;
+    }
 
     public List<EventDTO> getAllEvents() {
         return repository.findAll().stream().map(this::toDto).collect(Collectors.toList());
     }
 
-    public Optional<EventDTO> getEventById(Long id) { return repository.findById(id).map(this::toDto); }
+    public Optional<EventDTO> getEventById(Long id) {
+        return repository.findById(id).map(this::toDto);
+    }
 
     public EventDTO createEvent(EventDTO event) {
+        if (repository.findByNameIgnoreCase(event.getName()).isPresent()) {
+            throw new ConflictException("Ya existe un evento con el nombre: " + event.getName());
+        }
+
         try {
-            EventEntity e = new EventEntity(event.getName(), event.getDate(), event.getVenue());
+            EventEntity e = new EventEntity(event.getName(), event.getDate(), event.getVenue(), event.getCategory());
             EventEntity saved = repository.save(e);
             return toDto(saved);
         } catch (DataIntegrityViolationException ex) {
-            throw ex;
+            throw new ConflictException("Error al crear el evento: nombre duplicado");
         }
     }
 
@@ -36,6 +46,7 @@ public class EventService {
             e.setName(updated.getName());
             e.setDate(updated.getDate());
             e.setVenue(updated.getVenue());
+            e.setCategory(updated.getCategory());
             return toDto(repository.save(e));
         });
     }
@@ -46,5 +57,7 @@ public class EventService {
         return true;
     }
 
-    private EventDTO toDto(EventEntity e) { return new EventDTO(e.getId(), e.getName(), e.getDate(), e.getVenue()); }
+    private EventDTO toDto(EventEntity e) {
+        return new EventDTO(e.getId(), e.getName(), e.getDate(), e.getVenue(), e.getCategory());
+    }
 }

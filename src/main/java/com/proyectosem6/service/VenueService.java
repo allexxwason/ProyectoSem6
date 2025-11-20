@@ -2,6 +2,7 @@ package com.proyectosem6.service;
 
 import com.proyectosem6.dto.VenueDTO;
 import com.proyectosem6.entity.VenueEntity;
+import com.proyectosem6.exception.ConflictException;
 import com.proyectosem6.repository.VenueRepository;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,10 @@ public class VenueService {
     public Optional<VenueDTO> getVenueById(Long id) { return repository.findById(id).map(this::toDto); }
 
     public VenueDTO createVenue(VenueDTO venue) {
+        if (repository.findByNameIgnoreCase(venue.getName()).isPresent()) {
+            throw new ConflictException("Ya existe un venue con el nombre: " + venue.getName());
+        }
+    
         VenueEntity e = new VenueEntity(venue.getName(), venue.getLocation());
         VenueEntity saved = repository.save(e);
         return toDto(saved);

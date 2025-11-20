@@ -1,0 +1,154 @@
+package com.proyectosem6.service;
+
+import com.proyectosem6.dto.EventDTO;
+import com.proyectosem6.entity.EventEntity;
+import com.proyectosem6.exception.ConflictException;
+import com.proyectosem6.repository.EventRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.dao.DataIntegrityViolationException;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class EventServiceTest {
+
+    @Mock
+    private EventRepository repository;
+
+    @InjectMocks
+    private EventService service;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    void testGetAllEvents() {
+        List<EventEntity> entities = Arrays.asList(
+                new EventEntity("Concierto", "2025-12-01", "Arena", "Música"),
+                new EventEntity("Festival", "2025-12-10", "Estadio", "Cultural")
+        );
+        when(repository.findAll()).thenReturn(entities);
+
+        List<EventDTO> dtos = service.getAllEvents();
+
+        assertEquals(2, dtos.size());
+        assertEquals("Concierto", dtos.get(0).getName());
+        assertEquals("Festival", dtos.get(1).getName());
+        verify(repository, times(1)).findAll();
+    }
+
+    @Test
+    void testGetEventByIdFound() {
+        EventEntity entity = new EventEntity("Concierto", "2025-12-01", "Arena", "Música");
+        entity.setId(1L);
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
+
+        Optional<EventDTO> dto = service.getEventById(1L);
+
+        assertTrue(dto.isPresent());
+        assertEquals("Concierto", dto.get().getName());
+        verify(repository, times(1)).findById(1L);
+    }
+
+    @Test
+    void testGetEventByIdNotFound() {
+        when(repository.findById(1L)).thenReturn(Optional.empty());
+
+        Optional<EventDTO> dto = service.getEventById(1L);
+
+        assertFalse(dto.isPresent());
+        verify(repository, times(1)).findById(1L);
+    }
+
+    @Test
+    void testCreateEventSuccess() {
+        EventDTO dto = new EventDTO(null, "Concierto", "2025-12-01", "Arena", "Música");
+        EventEntity saved = new EventEntity("Concierto", "2025-12-01", "Arena", "Música");
+        saved.setId(1L);
+
+        when(repository.findByNameIgnoreCase("Concierto")).thenReturn(Optional.empty());
+        when(repository.save(any(EventEntity.class))).thenReturn(saved);
+
+        EventDTO result = service.createEvent(dto);
+
+        assertEquals(1L, result.getId());
+        assertEquals("Concierto", result.getName());
+        verify(repository, times(1)).save(any(EventEntity.class));
+    }
+
+    @Test
+    void testCreateEventConflict() {
+        EventDTO dto = new EventDTO(null, "Concierto", "2025-12-01", "Arena", "Música");
+        when(repository.findByNameIgnoreCase("Concierto")).thenReturn(Optional.of(new EventEntity()));
+
+        assertThrows(ConflictException.class, () -> service.createEvent(dto));
+        verify(repository, never()).save(any(EventEntity.class));
+    }
+
+    @Test
+    void testCreateEventDataIntegrityViolation() {
+        EventDTO dto = new EventDTO(null, "Concierto", "2025-12-01", "Arena", "Música");
+
+        when(repository.findByNameIgnoreCase("Concierto")).thenReturn(Optional.empty());
+        when(repository.save(any(EventEntity.class))).thenThrow(DataIntegrityViolationException.class);
+
+        assertThrows(ConflictException.class, () -> service.createEvent(dto));
+    }
+
+    @Test
+    void testUpdateEventFound() {
+        EventEntity entity = new EventEntity("Concierto", "2025-12-01", "Arena", "Música");
+        entity.setId(1L);
+        EventDTO updated = new EventDTO(1L, "Concierto Updated", "2025-12-02", "Arena", "Música");
+
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
+        when(repository.save(entity)).thenReturn(entity);
+
+        Optional<EventDTO> result = service.updateEvent(1L, updated);
+
+        assertTrue(result.isPresent());
+        assertEquals("Concierto Updated", result.get().getName());
+        verify(repository, times(1)).save(entity);
+    }
+
+    @Test
+    void testUpdateEventNotFound() {
+        EventDTO updated = new EventDTO(1L, "Concierto Updated", "2025-12-02", "Arena", "Música");
+        when(repository.findById(1L)).thenReturn(Optional.empty());
+
+        Optional<EventDTO> result = service.updateEvent(1L, updated);
+
+        assertFalse(result.isPresent());
+        verify(repository, never()).save(any(EventEntity.class));
+    }
+
+    @Test
+    void testDeleteEventFound() {
+        when(repository.existsById(1L)).thenReturn(true);
+
+        boolean result = service.deleteEvent(1L);
+
+        assertTrue(result);
+        verify(repository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    void testDeleteEventNotFound() {
+        when(repository.existsById(1L)).thenReturn(false);
+
+        boolean result = service.deleteEvent(1L);
+
+        assertFalse(result);
+        verify(repository, never()).deleteById(1L);
+    }
+}
