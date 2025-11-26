@@ -3,6 +3,9 @@ package com.proyectosem6.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Future;
+
+import java.time.LocalDate;
 
 public class EventDTO {
     private Long id;
@@ -23,6 +26,12 @@ public class EventDTO {
     @Size(min = 3, max = 50, message = "La categoría debe tener entre 3 y 50 caracteres")
     private String category;
 
+    @NotBlank(message = "La ciudad es obligatoria")
+    private String city;
+
+    @Future(message = "La fecha de inicio debe ser futura")
+    private LocalDate startDate;
+
     public EventDTO() {}
 
     public EventDTO(Long id, String name, String date, String venue, String category) {
@@ -31,6 +40,16 @@ public class EventDTO {
         this.date = date;
         this.venue = venue;
         this.category = category;
+    }
+
+    public EventDTO(Long id, String name, String date, String venue, String category, String city, LocalDate startDate) {
+        this.id = id;
+        this.name = name;
+        this.date = date;
+        this.venue = venue;
+        this.category = category;
+        this.city = city;
+        this.startDate = startDate;
     }
 
     // Constructor adicional para tests
@@ -53,4 +72,10 @@ public class EventDTO {
 
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
+
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+
+    public LocalDate getStartDate() { return startDate; }
+    public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
 }
