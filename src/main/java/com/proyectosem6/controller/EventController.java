@@ -2,6 +2,11 @@ package com.proyectosem6.controller;
 
 import com.proyectosem6.dto.EventDTO;
 import com.proyectosem6.service.EventService;
+import com.proyectosem6.exception.BadRequestException; 
+
+
+import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,18 +35,21 @@ public class EventController {
     }
 
     @PostMapping
-    public ResponseEntity<EventDTO> create(@RequestBody EventDTO event) {
-        EventDTO created = service.createEvent(event);
-        return ResponseEntity.ok(created);
+    public ResponseEntity<EventDTO> create(@Valid @RequestBody EventDTO e) {
+        if (e.getName() == null || e.getName().isBlank()) {
+            throw new BadRequestException("El nombre del evento es obligatorio");
+        }
+        return ResponseEntity.ok(service.createEvent(e));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EventDTO> update(@PathVariable Long id, @RequestBody EventDTO event) {
-        Optional<EventDTO> updated = service.updateEvent(id, event);
-        return updated.map(ResponseEntity::ok)
-                      .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<EventDTO> update(@PathVariable Long id, @Valid @RequestBody EventDTO e) {
+        if (e.getName() == null || e.getName().isBlank()) {
+            throw new BadRequestException("El nombre del evento es obligatorio");
+        }
+        return service.updateEvent(id, e).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
-
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         boolean deleted = service.deleteEvent(id);

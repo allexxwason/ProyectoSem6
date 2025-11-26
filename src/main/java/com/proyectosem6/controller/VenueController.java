@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
+import com.proyectosem6.exception.BadRequestException;
 
 @RestController
 @RequestMapping("/venues")
@@ -29,16 +30,21 @@ public class VenueController {
         return service.getVenueById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build()); }
 
     @PostMapping
-    @Operation(summary = "Crear nuevo venue")
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = "application/json", schema = @Schema(implementation = VenueDTO.class), examples = @ExampleObject(value = "{\"name\":\"Sala Principal\",\"location\":\"Centro\"}")))
     public ResponseEntity<VenueDTO> create(@Valid @RequestBody VenueDTO v) {
-        return ResponseEntity.ok(service.createVenue(v)); }
+        if (v.getName() == null || v.getName().isBlank()) {
+            throw new BadRequestException("El nombre del venue es obligatorio");
+        }
+        return ResponseEntity.ok(service.createVenue(v));
+    }
+
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar venue")
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = "application/json", schema = @Schema(implementation = VenueDTO.class), examples = @ExampleObject(value = "{\"name\":\"Sala Updated\",\"location\":\"Centro\"}")))
     public ResponseEntity<VenueDTO> update(@PathVariable Long id, @Valid @RequestBody VenueDTO v) {
-        return service.updateVenue(id,v).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build()); }
+        if (v.getName() == null || v.getName().isBlank()) {
+            throw new BadRequestException("El nombre del venue es obligatorio");
+        }
+        return service.updateVenue(id, v).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar venue")
