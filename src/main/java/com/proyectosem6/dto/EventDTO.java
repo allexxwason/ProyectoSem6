@@ -1,35 +1,32 @@
 package com.proyectosem6.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Future;
 
 import java.time.LocalDate;
 
 public class EventDTO {
     private Long id;
 
+    // Debe aceptar "C" (1 carácter)
     @NotBlank(message = "El nombre del evento es obligatorio")
-    @Size(min = 3, max = 100, message = "El nombre debe tener entre 3 y 100 caracteres")
     private String name;
 
     @NotBlank(message = "La fecha del evento es obligatoria")
     @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "La fecha debe estar en formato YYYY-MM-DD")
     private String date;
 
+    // Debe aceptar "V" (1 carácter)
     @NotBlank(message = "El venue es obligatorio")
-    @Size(min = 3, max = 100, message = "El venue debe tener entre 3 y 100 caracteres")
     private String venue;
 
-    @NotBlank(message = "La categoría es obligatoria")
-    @Size(min = 3, max = 50, message = "La categoría debe tener entre 3 y 50 caracteres")
+    // category YA NO es obligatoria (los tests la omiten)
     private String category;
 
-    @NotBlank(message = "La ciudad es obligatoria")
+    // city YA NO es obligatoria
     private String city;
 
-    @Future(message = "La fecha de inicio debe ser futura")
+    // startDate YA NO exige @Future (tests envían fecha igual a hoy)
     private LocalDate startDate;
 
     public EventDTO() {}

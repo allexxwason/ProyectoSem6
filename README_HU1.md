@@ -1,80 +1,95 @@
-# 🧩 HU1 – CRUD de Eventos con Swagger
+# 🧩 ProyectoSem6 – CRUD de Eventos con Arquitectura Hexagonal
 
-## 📘 Descripción
-Esta historia de usuario corresponde a la **HU1 del ProyectoSem6**, donde se desarrolló un **CRUD completo para gestionar eventos**, utilizando **Spring Boot 3**, **Java 17**, y **Swagger (OpenAPI)** para la documentación interactiva.
-
-El objetivo principal fue implementar una API REST sencilla con almacenamiento en memoria (sin base de datos) que permita crear, listar, actualizar y eliminar eventos.
-
----
-
-## 🚀 Tecnologías Utilizadas
-- **Java 17**
-- **Spring Boot 3.2.4**
-- **Spring Web**
-- **Spring Validation**
-- **SpringDoc OpenAPI (Swagger UI)**
-- **Maven**
-
----
-
-## 📂 Estructura del Proyecto
+## Estado resumido (HU1 / HU2 / HU3)
+- HU1 — Catálogo In‑Memory: implementado inicialmente; evolucionado a persistencia.git add .
+git commit -m "feat(HU3): refactor hexagonal, adapters JPA, mappers, tests; add application.yml"
+## Cómo ejecutar localmente
+1. Compilar y tests:
+```bash
+mvn clean test
+mvn clean package
 ```
-src/main/java/com/proyectosem6/
-│
-├── controller/
-│   ├── EventController.java      → Controlador principal del CRUD
-│
-├── dto/
-│   ├── EventDTO.java             → Objeto de transferencia de datos (DTO)
-│
-├── service/
-│   ├── EventService.java         → Lógica de negocio in-memory
-│
-└── ProyectoSem6Application.java  → Clase principal de arranque
-```
-
----
-
-## ⚙️ Ejecución del Proyecto
-
-1️⃣ Compilar y ejecutar con Maven:
+2. Ejecutar:
 ```bash
 mvn spring-boot:run
 ```
+3. Acceder:
+- Swagger UI: http://localhost:8080/swagger-ui.html
+- H2 console: http://localhost:8080/h2-console (JDBC URL: jdbc:h2:mem:testdb, user: sa)
 
-2️⃣ Una vez iniciado, acceder a:
-- API base → [http://localhost:8080/events](http://localhost:8080/events)
-- Swagger UI → [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+## Qué está en este repo (alto nivel)
+- domain/ — modelos y puertos (sin dependencias Spring/JPA)
+- application/usecase — implementaciones de casos de uso
+- infrastructure/adapters — controladores y adaptadores JPA
+- repository/ + entity/ — repositorios Spring Data + entidades JPA
+- dto/ — DTOs validados por Jakarta Validation
+- tests: unitarios (usecases), mappers, integración JPA (H2), controladores (MockMvc)
 
----
+## Endpoints principales (ejemplos)
+- POST /events
+- GET /events
+- GET /events/{id}
+- PUT /events/{id}
+- DELETE /events/{id}
+- Equivalentes en /venues
 
-## 🧠 Endpoints del CRUD
-
-| Método | Endpoint | Descripción | Ejemplo |
-|--------|-----------|--------------|----------|
-| `GET` | `/events` | Obtiene todos los eventos | — |
-| `GET` | `/events/{id}` | Obtiene un evento por ID | `/events/1` |
-| `POST` | `/events` | Crea un nuevo evento | Ver ejemplo JSON |
-| `PUT` | `/events/{id}` | Actualiza un evento existente | `/events/1` |
-| `DELETE` | `/events/{id}` | Elimina un evento | `/events/1` |
-
----
-
-### 📦 Ejemplo de cuerpo JSON para POST o PUT:
+Ejemplo POST /events:
 ```json
 {
-  "name": "Concierto Or Navi",
-  "date": "2025-11-10",
-  "venue": "Templo Dorado"
+  "name": "Concierto",
+  "date": "2025-12-01",
+  "venue": "Arena",
+  "category": "Music",
+  "city": "Bogotá",
+  "startDate": "2025-12-01"
 }
 ```
 
----
+## Validaciones resumidas
+- EventDTO: name (required), date (YYYY‑MM‑DD required), venue (required). Otros campos opcionales.
+- VenueDTO: name (3–100 chars required), location (3–100 chars required).
 
-## 🧾 Validaciones y Errores
-- El campo `name` es obligatorio (si está vacío retorna **400 – Bad Request**).
-- Si se intenta acceder a un ID inexistente retorna **404 – Not Found**.
-- En Swagger se visualizan todos los endpoints documentados.
+## Tests incluidos
+- UseCases: EventUseCaseImplTest, VenueUseCaseImplTest
+- Mappers: EventMapperTest, VenueMapperTest
+- JPA adapters (H2): JpaEventRepositoryAdapterTest, JpaVenueRepositoryAdapterTest
+- Controllers (MockMvc): EventControllerTest, VenueControllerTest
+
+## Comandos Git para preparar la rama y subir (ejecuta desde la raíz del repo)
+```bash
+# 1. Actualizar branch local
+git checkout -b hu3/hexagonal-complete
+
+# 2. Añadir cambios y commitear
+git add .
+git commit -m "feat(HU3): refactor a arquitectura hexagonal, adapters JPA, mappers y tests; add application.yml"
+
+# 3. Subir a remote (origin)
+git push -u origin hu3/hexagonal-complete
+```
+
+Si tu repo remoto no está configurado:
+```bash
+git remote add origin git@github.com:TU_USUARIO/ProyectoSem6.git
+git push -u origin hu3/hexagonal-complete
+```
+
+## Plantilla de PR (copiar/pegar al crear PR)
+Título:
+```
+feat(HU3): refactor hexagonal + JPA adapters, mappers, tests
+```
+Descripción:
+- Resumen rápido de cambios.
+- Qué probar: mvn clean test && mvn spring-boot:run → abrir Swagger y H2.
+- Endpoints clave a demo.
+- Consideraciones: eliminar duplicados, application.yml añadida.
+
+## Checklist antes de la demo
+- [ ] mvn clean package pasa sin errores
+- [ ] mvn test pasa sin fallos
+- [ ] Swagger UI y H2 accesibles
+- [ ] Subida de rama y PR creado
 
 ---
 
@@ -84,8 +99,6 @@ Repositorio: [https://github.com/allexxwason/ProyectoSem6](https://github.com/al
 Módulo: **Spring Avanzado – Semana 1**
 
 ---
-
-🟢 *HU1 Completada – API funcional con CRUD + Swagger.*
 
 
 
